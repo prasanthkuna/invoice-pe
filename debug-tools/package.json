@@ -1,0 +1,29 @@
+{
+  "name": "invoicepe-debug-tools",
+  "version": "1.0.0",
+  "description": "AI-assisted debugging tools for InvoicePe",
+  "main": "supabase-debug.js",
+  "scripts": {
+    "debug": "node supabase-debug.js",
+    "debug:card": "node supabase-debug.js \"card adding issues\"",
+    "debug:payment": "node supabase-debug.js \"payment problems\"",
+    "debug:sms": "node supabase-debug.js \"sms not working\"",
+    "debug:auth": "node supabase-debug.js \"auth issues\"",
+    "debug:all": "node supabase-debug.js \"all features\"",
+    "card:specific": "node feature-debuggers/card-debug.js",
+    "setup": "node setup-debug.js",
+    "install": "npm install && echo 'Debug tools ready!'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "debugging",
+    "supabase",
+    "ai-assisted",
+    "invoicepe"
+  ],
+  "author": "InvoicePe Team",
+  "license": "MIT"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@invoicepe/ui-kit",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-native": "^0.80.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "typescript": "^5.8.3"
+  }
+}

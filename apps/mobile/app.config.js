@@ -1,0 +1,135 @@
+import 'dotenv/config';
+
+export default {
+  expo: {
+    name: "InvoicePe",
+    slug: "invoicepe",
+    version: process.env.EXPO_PUBLIC_APP_VERSION || "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "light",
+    newArchEnabled: true,
+    scheme: "invoicepe",
+    description: "Smart invoice management with seamless payments - Create, manage, and pay invoices with PhonePe integration",
+    keywords: ["invoice", "payment", "phonepe", "business", "finance"],
+    privacy: "public",
+    platforms: ["ios", "android", "web"],
+    splash: {
+      image: "./assets/splash-icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    assetBundlePatterns: [
+      "**/*"
+    ],
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.invoicepe.app",
+      buildNumber: "1",
+      infoPlist: {
+        NSCameraUsageDescription: "InvoicePe needs camera access to scan and capture invoice photos for easy record keeping.",
+        NSPhotoLibraryUsageDescription: "InvoicePe needs photo library access to select invoice images from your gallery.",
+        NSContactsUsageDescription: "InvoicePe can access contacts to quickly add vendor information (optional).",
+        NSLocationWhenInUseUsageDescription: "InvoicePe can use location to auto-fill business addresses (optional).",
+        NSUserNotificationsUsageDescription: "InvoicePe sends notifications for payment confirmations and invoice updates."
+      }
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./assets/adaptive-icon.png",
+        backgroundColor: "#ffffff"
+      },
+      edgeToEdgeEnabled: true,
+      package: "com.invoicepe.app",
+      versionCode: 1,
+      permissions: [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_CONTACTS",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
+      ]
+    },
+    web: {
+      favicon: "./assets/favicon.png",
+      bundler: "metro"
+    },
+    plugins: [
+      [
+        "expo-build-properties",
+        {
+          android: {
+            compileSdkVersion: 34,
+            targetSdkVersion: 34,
+            buildToolsVersion: "34.0.0"
+          }
+        }
+      ],
+      "expo-barcode-scanner",
+      [
+        "expo-camera",
+        {
+          cameraPermission: "InvoicePe needs camera access to scan and capture invoice photos for easy record keeping."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission: "InvoicePe needs photo library access to select invoice images from your gallery."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          contactsPermission: "InvoicePe can access contacts to quickly add vendor information (optional)."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission: "InvoicePe can use location to auto-fill business addresses (optional).",
+          isIosBackgroundLocationEnabled: false,
+          isAndroidBackgroundLocationEnabled: false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#ffffff",
+          defaultChannel: "default"
+        }
+      ]
+    ],
+    experiments: {
+      typedRoutes: false
+    },
+    extra: {
+      eas: {
+        projectId: "18541abf-f0a9-4c86-a226-abf9471c625a"
+      },
+      // Environment variables accessible via expo-constants
+      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+      phonepeEnvironment: process.env.EXPO_PUBLIC_ENVIRONMENT || "development",
+      // PhonePe credentials based on environment
+      phonepeMerchantId: process.env.EXPO_PUBLIC_ENVIRONMENT === "production" 
+        ? process.env.EXPO_PUBLIC_PHONEPE_MERCHANT_ID 
+        : process.env.EXPO_PUBLIC_PHONEPE_UAT_MERCHANT_ID,
+      phonepeSaltKey: process.env.EXPO_PUBLIC_ENVIRONMENT === "production"
+        ? process.env.EXPO_PUBLIC_PHONEPE_SALT_KEY
+        : process.env.EXPO_PUBLIC_PHONEPE_UAT_SALT_KEY,
+      phonepeKeyIndex: process.env.EXPO_PUBLIC_ENVIRONMENT === "production"
+        ? process.env.EXPO_PUBLIC_PHONEPE_KEY_INDEX
+        : process.env.EXPO_PUBLIC_PHONEPE_UAT_KEY_INDEX,
+      msg91AuthKey: process.env.EXPO_PUBLIC_MSG91_AUTHKEY,
+      msg91TemplateId: process.env.EXPO_PUBLIC_MSG91_TEMPLATE_ID,
+      appVersion: process.env.EXPO_PUBLIC_APP_VERSION || "1.0.0",
+      apiTimeout: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || "30000")
+    }
+  }
+};

@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# Local env files
+.env*.local
+.env
+.env.production
+.env.development
+
+# Vercel
+.vercel
+
+# Typescript
+*.tsbuildinfo
+
+# Supabase
+.branches
+.temp
+.vscode/settings.json
+
+# Excel temporary files
+~$*.xlsx
+~$*.xls
+
+# Test files
+test-*.js
+*-test.js
+
+# Package lock files (using pnpm)
+package-lock.json
+
+# Documentation drafts
+*_PLAN.md
+*_COMPLETE.md
+*-doc.md
+
+# Development tools
+debug-tools/node_modules/
+debug-tools/debug-report.json
+apps/mobile/debug-logs.js
+
+# Business documents
+*.xlsx
+*.xls
+*.pdf
+
+# Build artifacts
+apps/mobile/dist/
+build/

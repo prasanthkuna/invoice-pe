@@ -1,0 +1,13 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@invoicepe/types": ["../../packages/types/src"],
+      "@invoicepe/ui-kit": ["../../packages/ui-kit/src"]
+    }
+  }
+}

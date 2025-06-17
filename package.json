@@ -1,0 +1,31 @@
+{
+  "name": "invoicepe",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter mobile start",
+    "build": "pnpm --filter mobile build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "test": "pnpm -r test",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:push": "npx supabase db push",
+    "db:generate": "npx supabase gen types typescript --local > packages/types/src/database.ts",
+    "functions:serve": "npx supabase functions serve",
+    "functions:deploy": "npx supabase functions deploy"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "eslint": "^9.29.0",
+    "eslint-config-expo": "^9.2.0",
+    "eslint-config-prettier": "^10.1.5",
+    "prettier": "^3.5.3",
+    "supabase": "^2.24.3",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
