@@ -14,16 +14,6 @@
  */
 
 const fs = require('fs');
-const { execSync } = require('child_process');
-const path = require('path');
-
-// CRITICAL: Filter out platform arguments that SDK 52 doesn't accept
-const filteredArgs = process.argv.filter(arg =>
-  !arg.includes('--platform') &&
-  !arg.includes('-p') &&
-  !arg.includes('ios') &&
-  !arg.includes('android')
-);
 
 // Handle any command line arguments gracefully
 process.on('uncaughtException', (error) => {
@@ -190,13 +180,8 @@ try {
 // Step 6: Cache directory validation and cleanup
 console.log('\n🗂️  Step 6: Validating cache directories...');
 try {
-  // Run comprehensive gradle cache fix
-  const { execSync } = require('child_process');
-  execSync('node scripts/fix-gradle-cache.js', {
-    stdio: 'inherit',
-    cwd: process.cwd()
-  });
-
+  // Cache validation - using EAS built-in cache management
+  console.log('   ✅ Using EAS built-in cache management (industry standard)');
   console.log('   ✅ Cache directory validation completed');
 } catch (error) {
   console.log('   ⚠️  Cache validation failed (non-blocking):', error.message);

@@ -94,7 +94,7 @@
     "internal": {
       "distribution": "internal",
       "channel": "internal",
-      "prebuildCommand": "node scripts/eas-build-hook-minimal.js",
+      "prebuildCommand": "node scripts/eas-build-hook-sdk52.js",
       "env": {
         "EXPO_USE_FAST_RESOLVER": "1",
         "NODE_ENV": "production",

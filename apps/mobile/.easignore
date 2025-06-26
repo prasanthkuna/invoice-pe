@@ -27,3 +27,7 @@ temp/
 # Build artifacts (keep source)
 # Note: We want to include our build scripts
 # !scripts/
+
+# Native folders (using Prebuild/CNG)
+/android
+/ios

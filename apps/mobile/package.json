@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "postinstall": "node scripts/fix-assets-registry.js",
-    "eas-build-post-install": "node scripts/eas-build-hook-minimal.js",
+    "eas-build-post-install": "node scripts/eas-build-hook-sdk52.js",
     "prestart": "pnpm run kill-port",
     "start": "expo start --tunnel",
     "start:clear": "pnpm run kill-port && expo start --tunnel --clear",
