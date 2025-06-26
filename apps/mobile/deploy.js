@@ -124,7 +124,7 @@ async function deploy() {
     console.log('   ✅ Database migrations applied');
     console.log('   ✅ Environment variables configured');
     console.log('   ✅ PhonePe credentials ready');
-    console.log('   ✅ MSG91 SMS service configured\n');
+    console.log('   ✅ Supabase phone auth configured\n');
 
     if (useTunnel) {
       console.log('🌐 Tunnel mode enabled for better QR code compatibility\n');

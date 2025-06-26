@@ -41,23 +41,25 @@ try {
       }
     });
     
-    // Check for deprecated MSG91 references
+    // Check for deprecated external auth references
     const deprecatedPatterns = [
       /MSG91_AUTHKEY/,
       /MSG91_TOKEN_AUTH/,
-      /MSG91_WIDGET_ID/
+      /MSG91_WIDGET_ID/,
+      /WHATSAPP_API_KEY/,
+      /EXTERNAL_AUTH_/
     ];
-    
+
     let hasDeprecated = false;
     deprecatedPatterns.forEach(pattern => {
       if (pattern.test(appConfig)) {
-        console.log(`   ❌ Deprecated MSG91 reference found`);
+        console.log(`   ❌ Deprecated external auth reference found`);
         hasDeprecated = true;
       }
     });
-    
+
     if (!hasDeprecated) {
-      console.log(`   ✅ No deprecated authentication references`);
+      console.log(`   ✅ No deprecated external auth references - using pure Supabase auth`);
     }
   }
 } catch (error) {

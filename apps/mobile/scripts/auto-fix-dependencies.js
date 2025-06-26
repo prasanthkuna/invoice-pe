@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Auto-Fix Dependencies for React Native 0.74.5 + Expo SDK 51
+ * Auto-Fix Dependencies for React Native 0.75.4 + Expo SDK 51
  * Automatically installs ALL missing critical dependencies
  */
 
@@ -17,13 +17,13 @@ const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
 // Critical dependencies that MUST exist
 const criticalDeps = {
   // Babel Runtime (CRITICAL for Metro bundling)
-  '@babel/runtime': '^7.27.0',
+  '@babel/runtime': '^7.27.6',
 
   // Build Properties (for iOS deployment target)
-  'expo-build-properties': '^0.12.0',
+  'expo-build-properties': '~0.13.3',
 
   // Expo modules autolinking
-  'expo-modules-autolinking': '^1.0.0'
+  'expo-modules-autolinking': '^1.11.0'
 };
 
 const devDeps = [];

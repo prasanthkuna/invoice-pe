@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * iOS Deployment Target Fix for React Native 0.74.5 + Expo SDK 51
+ * iOS Deployment Target Fix for React Native 0.76.9 + Expo SDK 52
  * Ensures proper iOS deployment target for react-native-screens 4.x compatibility
  */
 
@@ -125,7 +125,7 @@ function runIOSFixes() {
     console.log('\n🔧 QUICK FIXES:');
     console.log('1. Install expo-build-properties: pnpm add expo-build-properties');
     console.log('2. Add expo-build-properties plugin to app.config.js');
-    console.log('3. Set iOS deploymentTarget to "13.0" for react-native-screens 4.x');
+    console.log('3. Set iOS deploymentTarget to "15.1" for react-native-screens 4.x + SDK 52');
     return false;
   }
 }

@@ -80,7 +80,7 @@ config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
 // Enable caching for faster subsequent builds
 config.transformer.enableBabelRCLookup = false;
-config.transformer.enableBabelRuntime = false;
+config.transformer.enableBabelRuntime = true;
 
 module.exports = config;
 `;

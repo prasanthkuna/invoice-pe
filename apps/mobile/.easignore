@@ -1,0 +1,29 @@
+# EAS Build ignore file
+# Files and directories to ignore during EAS builds
+
+# Development files
+.env.local
+.env.development
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build artifacts (keep source)
+# Note: We want to include our build scripts
+# !scripts/

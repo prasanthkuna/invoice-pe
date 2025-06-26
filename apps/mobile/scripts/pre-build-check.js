@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Comprehensive Pre-Build Validation for React Native 0.74.5 + Expo SDK 51
+ * Comprehensive Pre-Build Validation for React Native 0.76+ + Expo SDK 52
  * Catches ALL potential build issues before attempting EAS builds
  */
 
@@ -30,9 +30,9 @@ function checkAssetsRegistry() {
   return true;
 }
 
-// Check 2: Critical Dependencies for React Native 0.74.5 + Expo SDK 51
+// Check 2: Critical Dependencies for React Native 0.75.4 + Expo SDK 51
 function checkCriticalDependencies() {
-  console.log('📦 Checking critical dependencies for React Native 0.74.5 + Expo SDK 51...');
+  console.log('📦 Checking critical dependencies for React Native 0.76.9 + Expo SDK 52...');
 
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies };
@@ -40,23 +40,23 @@ function checkCriticalDependencies() {
   // ALL critical dependencies that must exist for successful builds
   const criticalDeps = {
     // Core React Native
-    'react-native': '0.74.5',
-    'react': '^18.2.0',
-    'expo': '~51.0.0',
+    'react-native': '0.76.9',
+    'react': '^18.3.0',
+    'expo': '~52.0.0',
 
     // Babel Runtime (CRITICAL for Metro bundling)
-    '@babel/runtime': '^7.20.0',
-    '@babel/core': '^7.20.0',
-    'babel-preset-expo': '^10.0.0',
+    '@babel/runtime': '^7.27.0',
+    '@babel/core': '^7.27.0',
+    'babel-preset-expo': '^12.0.0',
 
     // Metro & Build Tools
-    'metro': '~0.80.0',
-    'expo-modules-autolinking': '^1.0.0',
+    'metro': '~0.81.0',
+    'expo-modules-autolinking': '^1.11.0',
 
     // Navigation (if using)
     '@react-navigation/native': '^6.0.0',
-    'react-native-screens': '^3.0.0',
-    'react-native-safe-area-context': '^4.0.0'
+    'react-native-screens': '^4.0.0',
+    'react-native-safe-area-context': '^4.12.0'
   };
 
   let missingDeps = [];
@@ -75,8 +75,8 @@ function checkCriticalDependencies() {
 
   // Check React Native version specifically
   const rnVersion = allDeps['react-native'];
-  if (!rnVersion.includes('0.74.5')) {
-    issues.push(`❌ React Native version ${rnVersion} may not be compatible with Expo SDK 51`);
+  if (!rnVersion.includes('0.76')) {
+    issues.push(`❌ React Native version ${rnVersion} may not be compatible with Expo SDK 52`);
     return false;
   }
 
@@ -141,22 +141,49 @@ function checkMetroConfig() {
 // Check 5: Gradle Configuration (Android)
 function checkGradleConfig() {
   console.log('🤖 Checking Android Gradle configuration...');
-  
+
   const settingsGradlePath = 'android/settings.gradle';
+  const buildGradlePath = 'android/build.gradle';
+
   if (!fs.existsSync(settingsGradlePath)) {
     issues.push('❌ Missing android/settings.gradle file');
     return false;
   }
-  
-  const settingsGradle = fs.readFileSync(settingsGradlePath, 'utf8');
-  
-  // Check for problematic React Native 0.75+ configuration
-  if (settingsGradle.includes('com.facebook.react.settings')) {
-    issues.push('❌ settings.gradle contains React Native 0.75+ plugin that is incompatible with 0.74.5');
+
+  if (!fs.existsSync(buildGradlePath)) {
+    issues.push('❌ Missing android/build.gradle file');
     return false;
   }
-  
-  console.log('   ✅ Gradle configuration is compatible with React Native 0.74.5');
+
+  const settingsGradle = fs.readFileSync(settingsGradlePath, 'utf8');
+  const buildGradle = fs.readFileSync(buildGradlePath, 'utf8');
+
+  // Check for React Native 0.76.9 configuration
+  if (settingsGradle.includes('com.facebook.react.settings')) {
+    console.log('   ✅ React Native 0.76.9 configuration detected and supported');
+  }
+
+  // Check for required Gradle dependency versions
+  const requiredDeps = [
+    { name: 'com.android.tools.build:gradle', pattern: /com\.android\.tools\.build:gradle:[\d.]+/ },
+    { name: 'org.jetbrains.kotlin:kotlin-gradle-plugin', pattern: /org\.jetbrains\.kotlin:kotlin-gradle-plugin:[\d.]+/ }
+  ];
+
+  for (const dep of requiredDeps) {
+    if (!dep.pattern.test(buildGradle)) {
+      issues.push(`❌ Missing version for ${dep.name} in android/build.gradle`);
+      return false;
+    }
+  }
+
+  // Check React Native Gradle plugin (can be with or without version)
+  if (!buildGradle.includes('com.facebook.react:react-native-gradle-plugin')) {
+    issues.push('❌ Missing React Native Gradle plugin in android/build.gradle');
+    return false;
+  }
+
+  console.log('   ✅ All Gradle dependencies have proper versions specified');
+  console.log('   ✅ Gradle configuration is compatible with React Native 0.76.9');
   return true;
 }
 

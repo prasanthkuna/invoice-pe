@@ -11,7 +11,7 @@ export default {
     newArchEnabled: true,
     scheme: "invoicepe",
     description: "Smart invoice management with seamless payments - Create, manage, and pay invoices with PhonePe integration",
-    privacy: "public",
+
     platforms: ["ios", "android", "web"],
     splash: {
       image: "./assets/splash-icon.png",
@@ -26,6 +26,7 @@ export default {
       bundleIdentifier: "com.prasanthkuna.invoicepe",
       appleTeamId: "VWZAFH2ZDV",
       buildNumber: "1",
+      deploymentTarget: "15.1",
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSCameraUsageDescription: "InvoicePe needs camera access to scan and capture invoice photos for easy record keeping.",
@@ -61,7 +62,7 @@ export default {
     },
     plugins: [
       "expo-asset",
-      "expo-barcode-scanner",
+      "expo-secure-store",
       [
         "expo-build-properties",
         {
@@ -72,10 +73,10 @@ export default {
             flipper: false
           },
           android: {
-            compileSdkVersion: 34,
-            targetSdkVersion: 34,
-            minSdkVersion: 23,
-            buildToolsVersion: "34.0.0",
+            compileSdkVersion: 35,
+            targetSdkVersion: 35,
+            minSdkVersion: 24,
+            buildToolsVersion: "33.0.0",
             enableProguardInReleaseBuilds: true,
             enableHermes: true,
             enableShrinkResourcesInReleaseBuilds: true,
@@ -142,8 +143,6 @@ export default {
       phonepeKeyIndex: process.env.EXPO_PUBLIC_ENVIRONMENT === "production"
         ? process.env.EXPO_PUBLIC_PHONEPE_KEY_INDEX
         : process.env.EXPO_PUBLIC_PHONEPE_UAT_KEY_INDEX,
-      msg91AuthKey: process.env.EXPO_PUBLIC_MSG91_AUTHKEY,
-      msg91TemplateId: process.env.EXPO_PUBLIC_MSG91_TEMPLATE_ID,
       appVersion: process.env.EXPO_PUBLIC_APP_VERSION || "1.0.0",
       apiTimeout: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || "30000")
     }

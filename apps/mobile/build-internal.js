@@ -10,7 +10,7 @@ require('dotenv').config({ path: '../../.env' });
 console.log('🚀 InvoicePe Internal Distribution Build Process\n');
 
 // Configuration
-const BUILD_PROFILE = 'internal';
+const BUILD_PROFILE = 'preview';
 const PLATFORMS = ['ios', 'android'];
 const BUILD_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
