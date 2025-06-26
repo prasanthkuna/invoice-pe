@@ -11,6 +11,7 @@ import {
 } from '@invoicepe/ui-kit';
 import { useInvoices } from '../hooks/useInvoices';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useExport } from '../hooks/useExport';
 import { generateAndShareInvoicePDF } from '../utils/pdfGenerator';
 import { AnimatedList } from '../components/animations/AnimatedList';
 import { FadeInView } from '../components/animations/FadeInView';
@@ -24,6 +25,7 @@ interface InvoiceListScreenProps {
 export const InvoiceListScreen: React.FC<InvoiceListScreenProps> = ({ navigation }) => {
   const { invoices, loading, deleteInvoice } = useInvoices();
   const { user } = useSupabaseAuth();
+  const { exportLedger } = useExport();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredInvoices = invoices.filter(invoice => {
@@ -74,6 +76,15 @@ export const InvoiceListScreen: React.FC<InvoiceListScreenProps> = ({ navigation
     }
   };
 
+  // CSV EXPORT: Handle ledger export
+  const handleExportLedger = async () => {
+    try {
+      await exportLedger();
+    } catch (error) {
+      Alert.alert('Export Failed', error instanceof Error ? error.message : 'Failed to export ledger');
+    }
+  };
+
   const renderInvoice = ({ item }: { item: InvoiceWithVendor }) => (
     <InvoiceCard
       invoice={item}
@@ -114,10 +125,19 @@ export const InvoiceListScreen: React.FC<InvoiceListScreenProps> = ({ navigation
           onChangeText={setSearchQuery}
           placeholder="Search invoices..."
         />
-        <Button
-          title="Create Invoice"
-          onPress={() => navigation.navigate('CreateInvoice')}
-        />
+        <View style={styles.buttonRow}>
+          <Button
+            title="Export CSV"
+            variant="secondary"
+            onPress={handleExportLedger}
+            style={styles.exportButton}
+          />
+          <Button
+            title="Create Invoice"
+            onPress={() => navigation.navigate('CreateInvoice')}
+            style={styles.createButton}
+          />
+        </View>
       </FadeInView>
 
       <AnimatedList
@@ -159,5 +179,15 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.sm,
     gap: spacing.md,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  exportButton: {
+    flex: 1,
+  },
+  createButton: {
+    flex: 2,
   },
 });

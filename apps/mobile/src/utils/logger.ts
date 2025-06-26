@@ -1,6 +1,11 @@
 // ===== MINIMAL AI DEBUGGING SYSTEM =====
 // Replaces complex logging with simple, performant debugging
 
+// Declare global __DEV__ variable for React Native
+declare global {
+  var __DEV__: boolean | undefined;
+}
+
 import { supabase } from '../lib/supabase';
 
 export enum LogLevel {
@@ -43,13 +48,14 @@ class DebugContext {
     };
 
     // Console log in development
-    if (__DEV__) {
-      const emoji = level >= LogLevel.ERROR ? '‚ùå' : level >= LogLevel.WARN ? '‚ö†Ô∏è' : 'Ì¥ç';
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) {
+      const emoji = level >= LogLevel.ERROR ? '‚ùå' : level >= LogLevel.WARN ? '‚ö†Ô∏è' : 'ÔøΩÔøΩÔøΩ';
       console.log(`${emoji} [${feature}]`, context);
     }
 
     // Send to Supabase in production (non-blocking)
-    if (!__DEV__) {
+    if (!isDev) {
       this.sendToSupabase(logData).catch(error => {
         console.warn('Failed to send debug context:', error);
       });
@@ -85,6 +91,19 @@ class DebugContext {
     this.log('sms', context, level);
   }
 
+  // Convenience logging methods
+  info(feature: string, context: any) {
+    this.log(feature, context, LogLevel.INFO);
+  }
+
+  warn(feature: string, context: any) {
+    this.log(feature, context, LogLevel.WARN);
+  }
+
+  debug(feature: string, context: any) {
+    this.log(feature, context, LogLevel.DEBUG);
+  }
+
   // Error logging
   error(feature: string, error: Error, context?: any) {
     this.log(feature, {
@@ -104,11 +123,13 @@ export const debugContext = new DebugContext();
 // Legacy compatibility - simplified logger for existing code
 class SimpleLegacyLogger {
   debug(message: string, context?: any) {
-    if (__DEV__) console.log('Ì¥ç', message, context);
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('ÔøΩÔøΩÔøΩ', message, context);
   }
 
   info(message: string, context?: any) {
-    if (__DEV__) console.log('‚ÑπÔ∏è', message, context);
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('‚ÑπÔ∏è', message, context);
   }
 
   warn(message: string, context?: any) {
@@ -120,27 +141,31 @@ class SimpleLegacyLogger {
   }
 
   fatal(message: string, context?: any, error?: Error) {
-    console.error('Ì≤Ä', message, context, error);
+    console.error('ÔøΩÔøΩÔøΩ', message, context, error);
   }
 
   screenView(screenName: string) {
-    if (__DEV__) console.log('Ì≥±', `Screen: ${screenName}`);
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('ÔøΩÔøΩÔøΩ', `Screen: ${screenName}`);
   }
 
   userAction(action: string, screen?: string) {
-    if (__DEV__) console.log('Ì±Ü', `Action: ${action}`, { screen });
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('ÔøΩÔøΩÔøΩ', `Action: ${action}`, { screen });
   }
 
   apiRequest(method: string, endpoint: string) {
-    if (__DEV__) console.log('Ìºê', `${method} ${endpoint}`);
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('ÔøΩÔøΩÔøΩ', `${method} ${endpoint}`);
   }
 
   apiResponse(method: string, endpoint: string, status: number, duration: number) {
-    if (__DEV__) console.log('Ì≥°', `${method} ${endpoint} - ${status} (${duration}ms)`);
+    const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
+    if (isDev) console.log('ÔøΩÔøΩÔøΩ', `${method} ${endpoint} - ${status} (${duration}ms)`);
   }
 
   apiError(method: string, endpoint: string, error: Error) {
-    console.error('Ì∫®', `${method} ${endpoint}`, error);
+    console.error('ÔøΩÔøΩÔøΩ', `${method} ${endpoint}`, error);
   }
 
   getLogs() { return []; }

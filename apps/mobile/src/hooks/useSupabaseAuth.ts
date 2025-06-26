@@ -10,6 +10,15 @@ interface AuthState {
   loading: boolean;
 }
 
+interface AuthResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user?: SupabaseUser;
+    session?: Session;
+  };
+}
+
 // Helper function to convert Supabase User to our User type
 const convertSupabaseUser = (supabaseUser: SupabaseUser | null): User | null => {
   if (!supabaseUser) return null;
@@ -24,6 +33,39 @@ const convertSupabaseUser = (supabaseUser: SupabaseUser | null): User | null => 
   };
 };
 
+// Helper function to ensure user exists in custom users table
+const ensureCustomUserExists = async (authUser: SupabaseUser): Promise<User | null> => {
+  try {
+    debugContext.info('auth', { step: 'ensuring_custom_user', userId: authUser.id });
+
+    const { data, error } = await supabase
+      .from('users')
+      .upsert({
+        id: authUser.id,
+        phone: authUser.phone || authUser.user_metadata?.phone || '',
+        business_name: authUser.user_metadata?.business_name || null,
+        gstin: authUser.user_metadata?.gstin || null,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'id',
+        ignoreDuplicates: false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      debugContext.error('auth', error, { step: 'ensure_custom_user_failed', userId: authUser.id });
+      return convertSupabaseUser(authUser); // Fallback to Supabase user
+    }
+
+    debugContext.info('auth', { step: 'custom_user_synced', userId: authUser.id });
+    return data as User;
+  } catch (error) {
+    debugContext.error('auth', error as Error, { step: 'ensure_custom_user_error', userId: authUser.id });
+    return convertSupabaseUser(authUser); // Fallback to Supabase user
+  }
+};
+
 export const useSupabaseAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
@@ -36,21 +78,28 @@ export const useSupabaseAuth = () => {
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           debugContext.error('auth', error, { step: 'get_initial_session' });
         }
 
+        // If we have a session, ensure custom user exists
+        let customUser: User | null = null;
+        if (session?.user) {
+          customUser = await ensureCustomUserExists(session.user);
+        }
+
         setAuthState({
-          user: convertSupabaseUser(session?.user ?? null),
+          user: customUser || convertSupabaseUser(session?.user ?? null),
           session: session,
           loading: false,
         });
 
-        debugContext.auth({ 
-          step: 'initial_session_loaded', 
+        debugContext.auth({
+          step: 'initial_session_loaded',
           hasSession: !!session,
-          userId: session?.user?.id 
+          userId: session?.user?.id,
+          hasCustomUser: !!customUser
         });
       } catch (error) {
         debugContext.error('auth', error as Error, { step: 'get_initial_session_failed' });
@@ -63,15 +112,21 @@ export const useSupabaseAuth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        debugContext.auth({ 
-          step: 'auth_state_changed', 
+        debugContext.auth({
+          step: 'auth_state_changed',
           event,
           hasSession: !!session,
-          userId: session?.user?.id 
+          userId: session?.user?.id
         });
 
+        // If we have a session, ensure custom user exists
+        let customUser: User | null = null;
+        if (session?.user) {
+          customUser = await ensureCustomUserExists(session.user);
+        }
+
         setAuthState({
-          user: convertSupabaseUser(session?.user ?? null),
+          user: customUser || convertSupabaseUser(session?.user ?? null),
           session: session,
           loading: false,
         });
@@ -83,33 +138,63 @@ export const useSupabaseAuth = () => {
     };
   }, []);
 
-  const signInWithPhone = async (phone: string) => {
+
+
+  const signInWithPhone = async (phone: string): Promise<AuthResponse> => {
     try {
-      debugContext.auth({ step: 'signing_in_with_phone', phone });
+      debugContext.auth({ step: 'signing_in_with_phone', phone: phone.slice(-4) });
+
+      // Validate phone number format
+      const phoneRegex = /^\+91[6-9]\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        return {
+          success: false,
+          message: 'Invalid phone number format. Use +91XXXXXXXXXX'
+        };
+      }
 
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: phone,
         options: {
           shouldCreateUser: true,
+          channel: 'sms'
         }
       });
 
       if (error) {
-        debugContext.error('auth', error, { step: 'sign_in_with_phone_failed', phone });
-        throw error;
+        debugContext.error('auth', error, { step: 'sign_in_with_phone_failed', phone: phone.slice(-4) });
+        return {
+          success: false,
+          message: error.message || 'Failed to send OTP'
+        };
       }
 
-      debugContext.auth({ step: 'sign_in_with_phone_success', phone });
-      return data;
+      debugContext.auth({ step: 'sign_in_with_phone_success', phone: phone.slice(-4) });
+      return {
+        success: true,
+        message: 'OTP sent successfully',
+        data
+      };
     } catch (error) {
-      debugContext.error('auth', error as Error, { step: 'sign_in_with_phone_error', phone });
-      throw error;
+      debugContext.error('auth', error as Error, { step: 'sign_in_with_phone_error', phone: phone.slice(-4) });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error. Please try again.'
+      };
     }
   };
 
-  const verifyOtp = async (phone: string, token: string) => {
+  const verifyOtp = async (phone: string, token: string): Promise<AuthResponse> => {
     try {
-      debugContext.auth({ step: 'verifying_otp', phone });
+      debugContext.auth({ step: 'verifying_otp', phone: phone.slice(-4), otpLength: token.length });
+
+      // Validate OTP format (6 digits for Twilio Verify)
+      if (!/^\d{6}$/.test(token)) {
+        return {
+          success: false,
+          message: 'Invalid OTP format. Must be 6 digits'
+        };
+      }
 
       const { data, error } = await supabase.auth.verifyOtp({
         phone: phone,
@@ -118,43 +203,39 @@ export const useSupabaseAuth = () => {
       });
 
       if (error) {
-        debugContext.error('auth', error, { step: 'verify_otp_failed', phone });
-        throw error;
+        debugContext.error('auth', error, { step: 'verify_otp_failed', phone: phone.slice(-4) });
+        return {
+          success: false,
+          message: error.message || 'Invalid OTP'
+        };
       }
 
-      debugContext.auth({ 
-        step: 'verify_otp_success', 
-        phone,
-        userId: data.user?.id 
+      // Ensure custom user is created/updated
+      if (data.user) {
+        await ensureCustomUserExists(data.user);
+      }
+
+      debugContext.auth({
+        step: 'verify_otp_success',
+        phone: phone.slice(-4),
+        userId: data.user?.id
       });
-      
-      return data;
+
+      return {
+        success: true,
+        message: 'Authentication successful',
+        data
+      };
     } catch (error) {
-      debugContext.error('auth', error as Error, { step: 'verify_otp_error', phone });
-      throw error;
+      debugContext.error('auth', error as Error, { step: 'verify_otp_error', phone: phone.slice(-4) });
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error. Please try again.'
+      };
     }
   };
 
-  const signInWithSupabaseUser = async (userId: string) => {
-    try {
-      debugContext.auth({ step: 'signing_in_with_user_id', userId });
 
-      // This is a simplified approach - in production you'd want a more secure method
-      // For now, we'll create a session using the admin API response
-      const { data, error } = await supabase.auth.getUser();
-      
-      if (error) {
-        debugContext.error('auth', error, { step: 'sign_in_with_user_id_failed', userId });
-        throw error;
-      }
-
-      debugContext.auth({ step: 'sign_in_with_user_id_success', userId });
-      return data;
-    } catch (error) {
-      debugContext.error('auth', error as Error, { step: 'sign_in_with_user_id_error', userId });
-      throw error;
-    }
-  };
 
   const signOut = async () => {
     try {
@@ -181,7 +262,6 @@ export const useSupabaseAuth = () => {
     isAuthenticated: !!authState.user,
     signInWithPhone,
     verifyOtp,
-    signInWithSupabaseUser,
     signOut,
   };
 };

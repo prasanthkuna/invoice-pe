@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { colors } from '@invoicepe/ui-kit';
 import { useSupabaseAuth } from './src/hooks/useSupabaseAuth';
@@ -10,11 +10,16 @@ import { devDebugger } from './src/utils/devDebugger';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { DebugPanel } from './src/components/DebugPanel';
 import { logger, debugContext } from './src/utils/logger';
+import { analytics } from './src/utils/analytics';
 
 export default function App() {
   const { loading, user } = useSupabaseAuth();
   const [debugPanelVisible, setDebugPanelVisible] = useState(false);
   const [debugTapCount, setDebugTapCount] = useState(0);
+
+  // MVP Feature: Dark mode support (8 lines)
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
 
   // Initialize dev debugger with user context
   useEffect(() => {
@@ -28,6 +33,9 @@ export default function App() {
       loading,
       environment: __DEV__ ? 'development' : 'production'
     });
+
+    // MVP Analytics: Track app opens
+    analytics.appOpened();
   }, []);
 
   // Debug panel trigger (tap 5 times in development)
@@ -70,7 +78,7 @@ export default function App() {
       >
         <View style={styles.container}>
           <RootNavigator />
-          <StatusBar style="light" />
+          <StatusBar style={isDarkMode ? "light" : "dark"} />
 
           {/* Debug trigger - only visible in development */}
           {__DEV__ && (

@@ -11,7 +11,6 @@ export default {
     newArchEnabled: true,
     scheme: "invoicepe",
     description: "Smart invoice management with seamless payments - Create, manage, and pay invoices with PhonePe integration",
-    keywords: ["invoice", "payment", "phonepe", "business", "finance"],
     privacy: "public",
     platforms: ["ios", "android", "web"],
     splash: {
@@ -24,9 +23,11 @@ export default {
     ],
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.invoicepe.app",
+      bundleIdentifier: "com.prasanthkuna.invoicepe",
+      appleTeamId: "VWZAFH2ZDV",
       buildNumber: "1",
       infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
         NSCameraUsageDescription: "InvoicePe needs camera access to scan and capture invoice photos for easy record keeping.",
         NSPhotoLibraryUsageDescription: "InvoicePe needs photo library access to select invoice images from your gallery.",
         NSContactsUsageDescription: "InvoicePe can access contacts to quickly add vendor information (optional).",
@@ -39,8 +40,8 @@ export default {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
       },
-      edgeToEdgeEnabled: true,
-      package: "com.invoicepe.app",
+
+      package: "com.invoicepe.beta",
       versionCode: 1,
       permissions: [
         "CAMERA",
@@ -59,17 +60,32 @@ export default {
       bundler: "metro"
     },
     plugins: [
+      "expo-asset",
+      "expo-barcode-scanner",
       [
         "expo-build-properties",
         {
+          ios: {
+            deploymentTarget: "15.1",
+            useFrameworks: "static",
+            privacyManifestAggregationEnabled: true,
+            flipper: false
+          },
           android: {
             compileSdkVersion: 34,
             targetSdkVersion: 34,
-            buildToolsVersion: "34.0.0"
+            minSdkVersion: 23,
+            buildToolsVersion: "34.0.0",
+            enableProguardInReleaseBuilds: true,
+            enableHermes: true,
+            enableShrinkResourcesInReleaseBuilds: true,
+            useLegacyPackaging: false,
+            packagingOptions: {
+              pickFirst: ["**/libc++_shared.so", "**/libjsc.so"]
+            }
           }
         }
       ],
-      "expo-barcode-scanner",
       [
         "expo-camera",
         {

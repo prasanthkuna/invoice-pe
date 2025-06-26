@@ -130,26 +130,7 @@ export class ApiClient {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async sendOTP(phone: string, context?: { screen?: string }) {
-    return this.request<any>('auth-otp', {
-      method: 'POST',
-      body: JSON.stringify({ phone }),
-    }, { ...context, action: 'send_otp' });
-  }
 
-  async verifyOTP(phone: string, otp: string, context?: { screen?: string }) {
-    return this.request<any>('auth-verify', {
-      method: 'POST',
-      body: JSON.stringify({ phone, otp }),
-    }, { ...context, action: 'verify_otp' });
-  }
-
-  async verifyMSG91Token(accessToken: string, context?: { screen?: string }) {
-    return this.request<any>('auth-verify-msg91', {
-      method: 'POST',
-      body: JSON.stringify({ accessToken }),
-    }, { ...context, action: 'verify_msg91_token' });
-  }
 
   async getVendors(context?: { screen?: string }) {
     return this.request('vendors', {
@@ -259,3 +240,6 @@ export class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+
+// Legacy export for backward compatibility
+export const supabaseService = apiClient;

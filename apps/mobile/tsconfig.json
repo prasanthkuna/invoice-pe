@@ -5,6 +5,13 @@
     "baseUrl": ".",
     "skipLibCheck": true,
     "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "../../node_modules/@types"
+    ],
     "paths": {
       "@invoicepe/types": ["../../packages/types/src"],
       "@invoicepe/ui-kit": ["../../packages/ui-kit/src"]

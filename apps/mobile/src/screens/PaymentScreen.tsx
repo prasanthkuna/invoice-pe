@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Linking } from 'react-native';
 import {
   Card,
@@ -47,6 +47,13 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
   const [saveNewCard, setSaveNewCard] = useState(false);
+
+  // UPI AUTO-SELECT: Auto-select UPI if vendor has UPI ID
+  useEffect(() => {
+    if (invoice.vendors?.upi_id && !selectedMethod) {
+      setSelectedMethod('upi');
+    }
+  }, [invoice.vendors?.upi_id, selectedMethod]);
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
