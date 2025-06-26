@@ -70,6 +70,28 @@ serve(async (req) => {
 
     const paymentData: PaymentRequest = await req.json();
 
+    // IDEMPOTENCY: Generate or get idempotency key from request header
+    const idempotencyKey = req.headers.get('X-Request-ID') || crypto.randomUUID();
+
+    // Check for existing payment with same idempotency key
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('*, invoices(amount)')
+      .eq('idempotency_key', idempotencyKey)
+      .single();
+
+    if (existingPayment) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Payment already exists',
+          payment: existingPayment,
+          payment_url: null // Existing payment, no new URL needed
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Validate required fields
     if (!paymentData.invoice_id || !paymentData.method) {
       return new Response(
@@ -78,12 +100,12 @@ serve(async (req) => {
       );
     }
 
-    // Get invoice details
+    // Get invoice details with vendor UPI info for auto-collect
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
       .select(`
         *,
-        vendors(id, name, category_id, vendor_categories(name))
+        vendors(id, name, category_id, vendor_categories(name), upi_id)
       `)
       .eq('id', paymentData.invoice_id)
       .eq('user_id', user.id)
@@ -116,6 +138,7 @@ serve(async (req) => {
         method: paymentData.method,
         saved_card_id: paymentData.saved_card_id,
         status: 'initiated',
+        idempotency_key: idempotencyKey,
       })
       .select()
       .single();
@@ -164,6 +187,26 @@ serve(async (req) => {
       savedCard = cardData;
     }
 
+    // UPI AUTO-COLLECT: Determine payment instrument based on method and vendor UPI availability
+    let paymentInstrument;
+    if (paymentData.method === 'upi' && invoice.vendors?.upi_id) {
+      // Auto-collect UPI payment if vendor has UPI ID
+      paymentInstrument = {
+        type: 'UPI_COLLECT',
+        targetApp: 'com.phonepe.app',
+        upiId: invoice.vendors.upi_id
+      };
+    } else if (savedCard) {
+      paymentInstrument = {
+        type: 'SAVED_CARD',
+        savedCardId: savedCard.phonepe_token,
+      };
+    } else {
+      paymentInstrument = {
+        type: 'PAY_PAGE',
+      };
+    }
+
     // Prepare PhonePe payment request according to API spec
     const phonePeRequest: PhonePePaymentRequest = {
       merchantId,
@@ -174,12 +217,7 @@ serve(async (req) => {
       redirectMode: 'REDIRECT',
       callbackUrl: `${supabaseUrl}/functions/v1/phonepe-webhook`,
       mobileNumber: mobileNumber.replace(/\D/g, ''), // Remove non-digits
-      paymentInstrument: savedCard ? {
-        type: 'SAVED_CARD',
-        savedCardId: savedCard.phonepe_token,
-      } : {
-        type: 'PAY_PAGE',
-      },
+      paymentInstrument,
     };
 
     // Encode the request according to PhonePe API spec

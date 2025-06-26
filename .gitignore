@@ -9,6 +9,8 @@ dist/
 web-build/
 
 # Native
+/android
+/ios
 *.orig.*
 *.jks
 *.p8
@@ -61,10 +63,15 @@ package-lock.json
 *_COMPLETE.md
 *-doc.md
 
-# Development tools
-debug-tools/node_modules/
-debug-tools/debug-report.json
+# Development tools (cleaned up)
 apps/mobile/debug-logs.js
+
+# Outdated build scripts (removed)
+apps/mobile/scripts/eas-build-hook-sdk51.js
+apps/mobile/scripts/eas-build-hook-minimal.js
+apps/mobile/scripts/fix-gradle-cache.js
+apps/mobile/scripts/platform-agnostic-prebuild.js
+apps/mobile/scripts/validate-sdk52-upgrade.js
 
 # Business documents
 *.xlsx

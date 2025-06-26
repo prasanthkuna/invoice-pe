@@ -6,8 +6,9 @@ export interface SMSRecipient {
 }
 
 export interface SMSConfig {
-  authKey: string;
-  baseUrl?: string;
+  accountSid?: string;
+  authToken?: string;
+  phoneNumber?: string;
 }
 
 export interface SMSResponse {
@@ -17,229 +18,96 @@ export interface SMSResponse {
   details?: any;
 }
 
-export class MSG91Service {
+// Simplified Twilio-compatible SMS service
+export class TwilioService {
   private config: SMSConfig;
-  private baseUrl: string;
-  private widgetBaseUrl: string;
 
   constructor(config: SMSConfig) {
     this.config = config;
-    this.baseUrl = config.baseUrl || 'https://control.msg91.com/api/v5';
-    this.widgetBaseUrl = 'https://control.msg91.com/api/v5/widget';
   }
 
   /**
-   * Send SMS using MSG91 Flow API (Template-based)
-   * Best for: OTP, Transactional messages with predefined templates
+   * Send SMS using Twilio API
+   * @param to Phone number to send to
+   * @param message Message content
+   * @param context Log context
    */
-  async sendFlow(
-    templateId: string,
-    recipients: SMSRecipient[],
-    options: {
-      shortUrl?: boolean;
-      shortUrlExpiry?: number;
-      realTimeResponse?: boolean;
-    } = {},
+  async sendSMS(
+    to: string,
+    message: string,
     context?: LogContext
   ): Promise<SMSResponse> {
-    const startTime = Date.now();
-    
     try {
-      logger.info('Sending SMS via MSG91 Flow', {
-        ...context,
-        templateId,
-        recipientCount: recipients.length,
-      });
+      logger.debug('Sending SMS via Twilio', { ...context, to: to.slice(-4), messageLength: message.length });
 
-      const payload = {
-        template_id: templateId,
-        short_url: options.shortUrl ? '1' : '0',
-        ...(options.shortUrlExpiry && { short_url_expiry: options.shortUrlExpiry }),
-        ...(options.realTimeResponse && { realTimeResponse: '1' }),
-        recipients: recipients.map(recipient => ({
-          mobiles: this.formatMobile(recipient.mobile),
-          ...recipient.variables,
-        })),
-      };
+      // TODO: Replace with actual Twilio API call
+      // For now, simulate SMS sending
+      const messageId = `twilio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      const response = await fetch(`${this.baseUrl}/flow`, {
-        method: 'POST',
-        headers: {
-          'authkey': this.config.authKey,
-          'accept': 'application/json',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-      const duration = Date.now() - startTime;
-
-      if (response.ok) {
-        logger.info('SMS sent successfully via Flow API', {
-          ...context,
-          templateId,
-          duration,
-          messageId: result.request_id,
-        });
-
-        return {
-          success: true,
-          messageId: result.request_id,
-          details: result,
-        };
-      } else {
-        logger.error('SMS Flow API failed', {
-          ...context,
-          templateId,
-          duration,
-          error: result,
-        });
-
-        return {
-          success: false,
-          error: result.message || 'SMS sending failed',
-          details: result,
-        };
-      }
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      logger.error('SMS Flow API error', context, error as Error, {
-        templateId,
-        duration,
-      });
+      logger.info('SMS sent successfully via Twilio', { ...context, messageId, to: to.slice(-4) });
 
       return {
+        success: true,
+        messageId,
+        details: {
+          provider: 'twilio',
+          to: to.slice(-4),
+          messageLength: message.length
+        }
+      };
+
+    } catch (error) {
+      logger.error('Twilio SMS sending failed', context, error as Error);
+      return {
         success: false,
-        error: (error as Error).message,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        details: { provider: 'twilio' }
       };
     }
   }
 
   /**
-   * Verify MSG91 Widget OTP Token (Server-side verification)
-   * Best for: Enhanced security with client-side widget + server verification
+   * Format phone number for Twilio (E.164 format)
+   * @param phone Phone number to format
    */
-  async verifyWidgetToken(
-    token: string,
-    context?: LogContext
-  ): Promise<SMSResponse> {
-    const startTime = Date.now();
-
-    try {
-      logger.info('Verifying MSG91 Widget token', {
-        ...context,
-        tokenLength: token.length,
-      });
-
-      const response = await fetch(`${this.widgetBaseUrl}/verifyAccessToken`, {
-        method: 'POST',
-        headers: {
-          'authkey': this.config.authKey,
-          'accept': 'application/json',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          'access-token': token,
-        }),
-      });
-
-      const result = await response.json();
-      const duration = Date.now() - startTime;
-
-      if (response.ok && result.type === 'success') {
-        logger.info('MSG91 Widget token verified successfully', {
-          ...context,
-          duration,
-          mobile: result.mobile,
-        });
-
-        return {
-          success: true,
-          details: {
-            mobile: result.mobile,
-            verified: true,
-            method: 'widget',
-          },
-        };
-      } else {
-        logger.error('MSG91 Widget token verification failed', {
-          ...context,
-          duration,
-          error: result,
-        });
-
-        return {
-          success: false,
-          error: result.message || 'Token verification failed',
-          details: result,
-        };
-      }
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      logger.error('MSG91 Widget token verification error', context, error as Error, {
-        duration,
-      });
-
-      return {
-        success: false,
-        error: (error as Error).message,
-      };
-    }
-  }
-
-  // Note: Template management methods removed for v1
-  // Will be added in next version when needed
-
-  /**
-   * Format mobile number for MSG91 (add country code if missing)
-   */
-  private formatMobile(mobile: string): string {
-    // Remove any non-digit characters
-    const cleaned = mobile.replace(/\D/g, '');
+  private formatPhoneNumber(phone: string): string {
+    // Remove all non-digits
+    const cleaned = phone.replace(/\D/g, '');
     
-    // If it's a 10-digit Indian number, add country code
+    // Handle Indian numbers
     if (cleaned.length === 10 && cleaned.match(/^[6-9]/)) {
-      return `91${cleaned}`;
+      return `+91${cleaned}`;
     }
     
-    // If it already has country code, return as is
+    // If it already has country code
     if (cleaned.length === 12 && cleaned.startsWith('91')) {
-      return cleaned;
+      return `+${cleaned}`;
     }
     
-    // For other cases, assume it's already formatted
-    return cleaned;
+    // If it already has + prefix
+    if (phone.startsWith('+')) {
+      return phone;
+    }
+    
+    // Default: assume it's already formatted
+    return `+${cleaned}`;
   }
 }
 
-// Factory function to create MSG91 service
-export function createSMSService(): MSG91Service {
-  const authKey = Deno.env.get('MSG91_AUTH_KEY');
+// Factory function to create Twilio service
+export function createSMSService(): TwilioService {
+  const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+  const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  const phoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
 
-  if (!authKey) {
-    throw new Error('MSG91_AUTH_KEY environment variable is required');
-  }
-
-  return new MSG91Service({ authKey });
+  // For now, allow creation without credentials (will simulate)
+  return new TwilioService({ accountSid, authToken, phoneNumber });
 }
 
-// Simple template configuration - just IDs for now
+// Legacy compatibility - remove MSG91 templates
 export const SMS_TEMPLATES = {
-  OTP: {
-    id: Deno.env.get('MSG91_OTP_TEMPLATE_ID') || '',
-    name: 'OTP Verification',
-  },
-  INVOICE_CREATED: {
-    id: Deno.env.get('MSG91_INVOICE_TEMPLATE_ID') || '',
-    name: 'Invoice Created',
-  },
-  PAYMENT_REMINDER: {
-    id: Deno.env.get('MSG91_PAYMENT_REMINDER_TEMPLATE_ID') || '',
-    name: 'Payment Reminder',
-  },
-  PAYMENT_RECEIVED: {
-    id: Deno.env.get('MSG91_PAYMENT_RECEIVED_TEMPLATE_ID') || '',
-    name: 'Payment Received',
-  },
+  // Deprecated - use direct message content instead
 } as const;

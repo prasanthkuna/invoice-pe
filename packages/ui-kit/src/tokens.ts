@@ -50,8 +50,11 @@ export const colors = {
   ...baseColors,
   background: baseColors.grey[900],
   surface: baseColors.grey[800],
-  text: baseColors.white,
-  textSecondary: baseColors.grey[400],
+  text: {
+    primary: baseColors.white,
+    secondary: baseColors.grey[400],
+  },
+  textSecondary: baseColors.grey[400], // Legacy support
   border: baseColors.grey[700],
 } as const;
 

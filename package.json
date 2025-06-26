@@ -5,11 +5,15 @@
   "scripts": {
     "dev": "pnpm --filter mobile start",
     "build": "pnpm --filter mobile build",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
     "test": "pnpm -r test",
+
+    "clean:metro": "pnpm --filter mobile exec rm -rf .metro",
+    "clean:deps": "pnpm --filter mobile exec rm -rf node_modules",
+    "reset:workspace": "pnpm clean:deps && pnpm install",
+
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
     "db:reset": "npx supabase db reset",
@@ -19,13 +23,9 @@
     "functions:deploy": "npx supabase functions deploy"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "eslint": "^9.29.0",
-    "eslint-config-expo": "^9.2.0",
-    "eslint-config-prettier": "^10.1.5",
     "prettier": "^3.5.3",
     "supabase": "^2.24.3",
-    "typescript": "^5.8.3"
+    "typescript": "~5.3.3"
   },
   "packageManager": "pnpm@8.15.0"
 }

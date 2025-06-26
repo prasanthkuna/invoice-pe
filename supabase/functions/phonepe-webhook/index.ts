@@ -165,10 +165,10 @@ serve(async (req) => {
       );
     }
 
-    // If payment is successful, trigger PDF generation
+    // DUAL NOTIFICATIONS: If payment is successful, trigger both push and SMS notifications
     if (paymentStatus === 'succeeded') {
       try {
-        // Get full invoice details for PDF generation
+        // Get full invoice and user details for notifications
         const { data: fullInvoice } = await supabase
           .from('invoices')
           .select(`
@@ -178,13 +178,45 @@ serve(async (req) => {
           .eq('id', payment.invoice_id)
           .single();
 
-        if (fullInvoice) {
-          // TODO: Trigger PDF generation here
-          console.log('Payment successful, PDF generation should be triggered for invoice:', fullInvoice.id);
+        const { data: user } = await supabase
+          .from('users')
+          .select('phone')
+          .eq('id', payment.invoices.user_id)
+          .single();
+
+        if (fullInvoice && user) {
+          // SMS notification (existing service)
+          await fetch(`${supabaseUrl}/functions/v1/send-invoice-sms`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              invoiceId: payment.invoice_id,
+              customerPhone: user.phone,
+              type: 'payment_received'
+            })
+          }).catch(console.error);
+
+          // Push notification (new)
+          await supabase.from('notifications').insert({
+            user_id: payment.invoices.user_id,
+            title: 'Payment Successful! 🎉',
+            body: `₹${fullInvoice.amount} paid to ${fullInvoice.vendors.name}`,
+            type: 'payment_success',
+            data: {
+              payment_id: payment.id,
+              invoice_id: payment.invoice_id,
+              amount: fullInvoice.amount
+            }
+          }).catch(console.error);
+
+          console.log('Dual notifications sent for payment:', payment.id);
         }
       } catch (error) {
-        console.error('Error in post-payment processing:', error);
-        // Don't fail the webhook for PDF generation errors
+        console.error('Error in dual notification processing:', error);
+        // Don't fail the webhook for notification errors
       }
     }
 

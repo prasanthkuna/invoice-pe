@@ -74,13 +74,17 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         } else {
+          // CSV EXPORT: Check if export parameter is present
+          const isExport = url.searchParams.get('export') === 'csv';
+
+          const selectQuery = isExport
+            ? `*, vendors(name), payments(method)` // Include payment method for export
+            : `*, vendors(id, name, category_id, vendor_categories(name))`;
+
           // Get all invoices for user
           const { data: invoices, error: listError } = await supabase
             .from('invoices')
-            .select(`
-              *,
-              vendors(id, name, category_id, vendor_categories(name))
-            `)
+            .select(selectQuery)
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
 
@@ -91,8 +95,13 @@ serve(async (req) => {
             );
           }
 
+          // Return data format based on request type
+          const responseData = isExport
+            ? { data: invoices } // Simple format for CSV export
+            : { success: true, message: 'Invoices retrieved', invoices }; // Standard format
+
           return new Response(
-            JSON.stringify({ success: true, message: 'Invoices retrieved', invoices }),
+            JSON.stringify(responseData),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }

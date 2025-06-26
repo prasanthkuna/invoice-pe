@@ -188,8 +188,10 @@ export interface PhonePePaymentRequest {
   callbackUrl: string;
   mobileNumber?: string;
   paymentInstrument: {
-    type: 'PAY_PAGE' | 'SAVED_CARD';
+    type: 'PAY_PAGE' | 'SAVED_CARD' | 'UPI_COLLECT';
     savedCardId?: string;
+    targetApp?: string;
+    upiId?: string;
   };
 }
 
